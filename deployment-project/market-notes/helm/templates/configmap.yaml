@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.appFullName }}
+  namespace: {{ .Values.namespace }}
+data:
+  JAVA_OPTS: {{ .Values.config.javaOpts | quote }}
+  DB_PASSWORD: {{ .Values.config.db.password | quote }}
+  DB_URL: {{ .Values.config.db.url | quote }}
+  DB_USERNAME: {{ .Values.config.db.username | quote }}
+  SMTP_HOST: {{ .Values.config.smtp.host | quote }}
+  SMTP_USERNAME: {{ .Values.config.smtp.username | quote }}
+  SMTP_PASSWORD: {{ .Values.config.smtp.password | quote }}
+  REFRESH_COMPANIES_CRON: {{ .Values.config.refreshCompanies.cron | quote }}
+  USER_REPORT_CRON: {{ .Values.config.userReport.cron | quote }}
+  OAUTH2_ISSUER_URI: {{ .Values.config.oauth2.issuerUri | quote }}

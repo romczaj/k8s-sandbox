@@ -1,0 +1,33 @@
+replicaCount: 1
+appFullName: market-notes-api
+namespace: market-notes
+image:
+  name: localhost:32000/market-notes-v1
+  tag: 37
+  pullPolicy: Always
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 50m
+    memory: 512Mi
+service:
+  port: 8080
+  nodePort: 30080
+config:
+  javaOpts: '-Xms128m -Xmx1024m -Dspring.profiles.active=prod'
+  db:
+    password: 'psltest'
+    url: 'jdbc:postgresql://postgres/postgresdb'
+    username: 'admin'
+  smtp:
+    host: smtp.mailersend.net
+    username: ajemromek@gmail.com
+    password: YsVXI2hyOUx7KnHL
+  refreshCompanies:
+    cron: '0 0 15 ? * MON-FRI'
+  userReport:
+    cron: '0 15 15 ? * MON-FRI'
+  oauth2:
+    issuerUri: http://192.168.100.44:8100/realms/market-notes

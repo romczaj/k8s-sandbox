@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.appFullName }}
+  namespace: {{ .Values.namespace }}
+data:
+  application-properties.json: |
+    {
+      "backendApiUrl": {{ .Values.config.backendApiUrl | quote }},
+      "keycloakUrl": {{ .Values.config.keycloak.keycloakUrl | quote }},
+      "keycloakRealm": {{ .Values.config.keycloak.keycloakRealm | quote }},
+      "keycloakClientId": {{ .Values.config.keycloak.keycloakClientId | quote }}
+    }

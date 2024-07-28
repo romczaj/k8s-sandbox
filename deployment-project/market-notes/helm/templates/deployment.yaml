@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appFullName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appFullName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appFullName }}
+      annotations:
+        timestamp: {{ now | quote }} # Add this line
+    spec:
+      containers:
+        - name: {{ .Values.appFullName }}
+          image: {{ .Values.image.name }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+          ports:
+            - name: app-port
+              containerPort: {{ .Values.service.port }}
+
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.appFullName }}
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 10
+            initialDelaySeconds: 150
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            failureThreshold: 10
+            periodSeconds: 20
+            initialDelaySeconds: 150

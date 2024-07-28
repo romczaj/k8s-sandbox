@@ -1,0 +1,68 @@
+def projectHome = "/market-notes"
+def appProjectHomeDir = "${projectHome}/frontend"
+def tmpBuildPath = "/home/pjoter-hp/tmp-build-market-notes-frontend/${env.BUILD_NUMBER}"
+
+def executeSSHCommand = { cmd ->
+    sh "sshpass -e ssh -t -o StrictHostKeyChecking=no pjoter-hp@172.17.0.1 \"cd ${tmpBuildPath}; ${cmd}\""
+}
+
+def copyFilesToRemote = { src, dest ->
+    sh "sshpass -e scp -r -o StrictHostKeyChecking=no ${src} pjoter-hp@172.17.0.1:${dest}"
+}
+
+def imageRepo = "localhost:32000"
+def imageName = "market-notes-frontend-v1"
+
+pipeline {
+    agent any
+
+    environment {
+        SSHPASS = credentials('ssh-pass-secret-id')
+    }
+
+    stages {
+        stage("Clone Git Repository") {
+            steps {
+                dir(projectHome) {
+                    git(
+                        url: "git@github.com:romczaj/market-notes.git",
+                        branch: "main",
+                        credentialsId: 'ajemromek-github-key-id',
+                        changelog: true,
+                        poll: true,
+                    )
+                }
+            }
+        }
+
+        stage("Copy Files to Remote") {
+            steps {
+                script {
+                    copyFilesToRemote(appProjectHomeDir, tmpBuildPath)
+                }
+            }
+        }
+
+        stage('Docker image') {
+            steps {
+                script {
+                    echo 'Building docker image..'
+                    def buildNumber = env.BUILD_NUMBER
+                    executeSSHCommand("docker build -t ${imageName}:${buildNumber} .")
+                    executeSSHCommand("docker tag ${imageName}:${buildNumber} ${imageRepo}/${imageName}:${buildNumber}")
+                    executeSSHCommand("docker push ${imageRepo}/${imageName}:${buildNumber}")
+                    echo "Image ${imageRepo}/${imageName}:${buildNumber} has been built and pushed"
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                echo 'Cleaning up..'
+                executeSSHCommand("rm -rf ${tmpBuildPath}")
+            }
+        }
+    }
+}

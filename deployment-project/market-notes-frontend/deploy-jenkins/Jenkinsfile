@@ -1,0 +1,41 @@
+def latestTagScript = "/home/pjoter-hp/pjoter-hp-vps/jenkins/docker-compose/latest-tag.sh"
+def helmChartPath = "/home/pjoter-hp/pjoter-hp-vps/deployment-project/market-notes-frontend/helm"
+def helmProjectName = "market-notes-frontend"
+
+def imageRepo = "localhost:32000"
+def imageName = "market-notes-frontend-v1"
+
+def executeSSHCommand = { cmd ->
+    sh(returnStdout: true, script: "sshpass -e ssh -o StrictHostKeyChecking=no pjoter-hp@172.17.0.1 \"${cmd}\"")
+}
+
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'Build image tag', defaultValue: '0', description: 'Tag to be used for the Docker image')
+    }
+
+    environment {
+        SSHPASS = credentials('ssh-pass-secret-id')
+    }
+
+    stages {
+        stage("Deploy") {
+            steps {
+                script {
+                    def buildTag = params['Build image tag']
+                    if (buildTag == '0') {
+                        def output = executeSSHCommand("sh ${latestTagScript} ${imageRepo} ${imageName}")
+                        def matcher = (output =~ /Highest tag: (\d+)/)
+                        buildTag = matcher ? matcher[0][1] : ""
+                        echo "Using highest tag from registry: ${buildTag}"
+                    } else {
+                        echo "Using provided tag: ${buildTag}"
+                    }
+                    executeSSHCommand("microk8s helm upgrade ${helmProjectName} ${helmChartPath} --set=image.tag=${buildTag} --wait --timeout 120s")
+                }
+            }
+        }
+    }
+}

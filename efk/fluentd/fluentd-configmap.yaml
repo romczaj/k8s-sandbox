@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluentd-config
+data:
+  fluent.conf: |
+    <source>
+      @type tail
+      read_from_head true
+      tag market-notes-api
+      path /var/log/containers/market-notes*.log  # Update this line with the correct path
+      pos_file /var/log/fluentd-containers.log.pos
+      exclude_path ["/var/log/containers/fluent*"]
+    <parse>
+      @type multiline
+      format_firstline /.* stdout F \d{4}-\d{1,2}-\d{1,2}/
+      format1 /.* stdout F (?<time>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}) \[(?<thread>[a-zA-Z0-9.-]+)\] \[(?<level>[a-zA-Z0-9.-]+)\] \[(?<log_class>[a-zA-Z0-9.-]+)\] (?<message>.*)/    
+    </parse>
+    </source>
+    
+
+    <filter **>
+      @type record_transformer
+      enable_ruby
+      <record>
+      message ${record["message"].gsub(/.* stdout F/, '')}
+      </record>
+    </filter>
+
+    <match market-notes-api>
+      @type elasticsearch
+      host "#{ENV['FLUENT_ELASTICSEARCH_HOST'] || 'elasticsearch.elastic-kibana'}"
+      port "#{ENV['FLUENT_ELASTICSEARCH_PORT'] || '9200'}"
+      index_name market-notes-api-index
+      type_name fluentd
+      include_timestamp true
+    </match>
+    
+
+# 2024-06-14 14:14:19 [AsyncExecutor-3] [INFO] [p.r.m.i.out.dataprovider.CsvDecoder] Decoding response from https://query1.finance.yahoo.com/v7/finance/download/ALE.WA?period1=1631923200&period2=1718409540&interval=1d&events=history&includeAdjustedClose=true

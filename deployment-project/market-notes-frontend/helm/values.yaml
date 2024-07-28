@@ -1,0 +1,23 @@
+replicaCount: 1
+appFullName: market-notes-frontend
+namespace: market-notes
+image:
+  name: localhost:32000/market-notes-frontend-v1
+  tag: 9
+  pullPolicy: Always
+resources:
+  limits:
+    cpu: 500m
+    memory: 1024Mi
+  requests:
+    cpu: 50m
+    memory: 512Mi
+service:
+  port: 80
+  nodePort: 30120
+config:
+  backendApiUrl: http://192.168.100.44:30080
+  keycloak:
+    keycloakUrl: http://192.168.100.44:8100
+    keycloakRealm: market-notes
+    keycloakClientId: market-notes-frontend
