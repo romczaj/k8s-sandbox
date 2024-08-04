@@ -1,5 +1,5 @@
-def latestTagScript = "/home/pjoter-hp/pjoter-hp-vps/jenkins/docker-compose/latest-tag.sh"
-def helmChartPath = "/home/pjoter-hp/pjoter-hp-vps/deployment-project/market-notes/helm"
+def latestTagScript = "/home/pjoter-hp/k8s-sandbox/jenkins/docker-compose/latest-tag.sh"
+def helmChartPath = "/home/pjoter-hp/k8s-sandbox/deployment-project/market-notes/helm"
 def helmProjectName = "market-notes"
 
 def imageRepo = "localhost:32000"

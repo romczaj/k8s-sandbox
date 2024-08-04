@@ -29,6 +29,6 @@ services:
       API_PASSWORD: password
     ports:
       - "8100:8090"
-    command: [ "start-dev --import-realm --http-port=8090 -Dkeycloak.migration.action=export" ]
+    command: [ "start-dev", "--import-realm", "--http-port=8090"]
     depends_on:
       - keycloak-db
